@@ -2,19 +2,13 @@
 
 import json
 import re
+from datetime import date
 from pathlib import Path
 
 import requests
-from bs4 import BeautifulSoup
 
-from datetime import date
-
-today = date.today().isoformat()
-
-INDEX_URL = (
-    "https://pl.wiktionary.org/wiki/"
-    "Indeks:W%C5%82oski_-_Najpopularniejsze_s%C5%82owa"
-)
+API_URL = "https://pl.wiktionary.org/w/api.php"
+PAGE_TITLE = "Indeks:Włoski - Najpopularniejsze słowa"
 
 ROOT = Path(__file__).resolve().parent.parent
 WORDS_DIR = ROOT / "words"
@@ -22,21 +16,91 @@ WORDS_DIR = ROOT / "words"
 WORDS_DIR.mkdir(exist_ok=True)
 
 HEADERS = {
-    "User-Agent": (
-        "italian-polish-dictionary/1.0 "
-        "(GitHub project)"
-    )
+    "User-Agent": "italian-polish-dictionary/1.0"
 }
 
 
-def slug_to_id(word):
-    return f"it-{word}"
+def get_wikitext():
+    params = {
+        "action": "query",
+        "prop": "revisions",
+        "rvprop": "content",
+        "titles": PAGE_TITLE,
+        "format": "json",
+        "formatversion": "2"
+    }
+
+    response = requests.get(
+        API_URL,
+        params=params,
+        headers=HEADERS,
+        timeout=60,
+    )
+
+    response.raise_for_status()
+
+    data = response.json()
+
+    pages = data["query"]["pages"]
+
+    if not pages:
+        raise RuntimeError("No page returned")
+
+    return pages[0]["revisions"][0]["content"]
 
 
-def build_skeleton(word, rank):
+def extract_words(wikitext):
+    """
+    Wyciąga wszystkie [[hasła]] z indeksu.
+    """
+
+    matches = re.findall(r"\[\[([^\]|#]+)", wikitext)
+
+    blacklist = {
+        "Wikisłownik",
+        "Wikipedia",
+        "Pomoc",
+        "Kategoria",
+        "Kategorie",
+        "Strona główna",
+        "Indeks",
+    }
+
+    words = []
+    seen = set()
+
+    for item in matches:
+
+        word = item.strip()
+
+        if ":" in word:
+            continue
+
+        if word in blacklist:
+            continue
+
+        if len(word) < 2:
+            continue
+
+        if not re.match(
+            r"^[A-Za-zÀ-ÿ' -]+$",
+            word
+        ):
+            continue
+
+        if word not in seen:
+            seen.add(word)
+            words.append(word)
+
+    return words
+
+
+def build_record(word, rank):
+
+    today = date.today().isoformat()
 
     return {
-        "id": slug_to_id(word),
+        "id": f"it-{word}",
         "lemma": word,
         "language": "it",
         "frequency_rank": rank,
@@ -56,82 +120,20 @@ def build_skeleton(word, rank):
     }
 
 
-def fetch_index():
-
-    response = requests.get(
-        INDEX_URL,
-        headers=HEADERS,
-        timeout=30,
-    )
-
-    response.raise_for_status()
-
-    return response.text
-
-
-def extract_words(html):
-
-    soup = BeautifulSoup(html, "html.parser")
-
-    words = []
-    seen = set()
-
-    for link in soup.select("a[href^='/wiki/']"):
-
-        word = link.get_text(strip=True)
-
-        if not word:
-            continue
-
-        if ":" in word:
-            continue
-
-        if len(word) < 2:
-            continue
-
-        if not re.match(
-            r"^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$",
-            word
-        ):
-            continue
-
-        href = link.get("href", "")
-
-        if "Indeks:" in href:
-            continue
-
-        if word in seen:
-            continue
-
-        seen.add(word)
-        words.append(word)
-
-    return words
-
-
-def create_word_files(words):
+def create_files(words):
 
     created = 0
     skipped = 0
 
-    for rank, word in enumerate(
-        words,
-        start=1
-    ):
+    for rank, word in enumerate(words, start=1):
 
-        filename = (
-            WORDS_DIR /
-            f"{word}.json"
-        )
+        filename = WORDS_DIR / f"{word}.json"
 
         if filename.exists():
             skipped += 1
             continue
 
-        payload = build_skeleton(
-            word,
-            rank
-        )
+        data = build_record(word, rank)
 
         with open(
             filename,
@@ -140,7 +142,7 @@ def create_word_files(words):
         ) as f:
 
             json.dump(
-                payload,
+                data,
                 f,
                 ensure_ascii=False,
                 indent=2
@@ -153,29 +155,23 @@ def create_word_files(words):
 
 def main():
 
-    print(
-        "Downloading Wiktionary index..."
-    )
+    print("Downloading index via MediaWiki API...")
 
-    html = fetch_index()
+    wikitext = get_wikitext()
 
-    words = extract_words(html)
+    words = extract_words(wikitext)
 
-    print(
-        f"Found {len(words)} words"
-    )
+    print(f"Found {len(words)} words")
 
-    created, skipped = (
-        create_word_files(words)
-    )
+    print("First 20 entries:")
 
-    print(
-        f"Created: {created}"
-    )
+    for word in words[:20]:
+        print(f" - {word}")
 
-    print(
-        f"Skipped: {skipped}"
-    )
+    created, skipped = create_files(words)
+
+    print(f"Created: {created}")
+    print(f"Skipped: {skipped}")
 
 
 if __name__ == "__main__":
