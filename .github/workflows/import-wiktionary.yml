@@ -7,13 +7,10 @@ permissions:
   contents: write
 
 jobs:
-
   import:
-
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -43,4 +40,6 @@ jobs:
           fi
 
           git commit -m "Import words from Wiktionary"
-          git push
+
+          git pull --rebase origin main
+          git push origin HEAD:main
