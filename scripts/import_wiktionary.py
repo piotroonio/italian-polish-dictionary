@@ -7,6 +7,10 @@ from pathlib import Path
 import requests
 from bs4 import BeautifulSoup
 
+from datetime import date
+
+today = date.today().isoformat()
+
 INDEX_URL = (
     "https://pl.wiktionary.org/wiki/"
     "Indeks:W%C5%82oski_-_Najpopularniejsze_s%C5%82owa"
@@ -46,8 +50,8 @@ def build_skeleton(word, rank):
         ],
         "metadata": {
             "source": "pl.wiktionary.org",
-            "created": "2026-11-27",
-            "updated": "2026-11-27"
+            "created": today,
+            "updated": today
         }
     }
 
