@@ -2,21 +2,15 @@
   "id": "it-acqua",
   "lemma": "acqua",
   "language": "it",
-
   "frequency_rank": 245,
-
   "cefr": "A1",
-
   "part_of_speech": "noun",
-
   "gender": "feminine",
-
   "senses": [
     {
       "translations": [
         "woda"
       ],
-
       "examples": [
         {
           "it": "Bevo un bicchiere d'acqua.",
@@ -25,7 +19,6 @@
       ]
     }
   ],
-
   "metadata": {
     "source": "pl.wiktionary.org",
     "created": "2026-11-27",
