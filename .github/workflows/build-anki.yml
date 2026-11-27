@@ -1,0 +1,51 @@
+name: Build Anki Deck
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Create output directory
+        run: |
+          mkdir -p exports
+
+      - name: Validate dictionary
+        run: |
+          python scripts/validate.py
+
+      - name: Build Anki CSV
+        run: |
+          python scripts/build_anki.py
+
+      - name: Upload deck artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: anki-export
+          path: exports/
+
+      - name: Publish generated files
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Build Anki exports"
+          file_pattern: exports/*
