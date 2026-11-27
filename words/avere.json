@@ -4,10 +4,21 @@
   "language": "it",
   "frequency_rank": 14,
   "cefr": "unknown",
-  "part_of_speech": "",
+  "part_of_speech": "verb",
   "senses": [
     {
-      "translations": [],
+      "translations": [
+        "'''Futuro''' {{lp}} io avrò",
+        "'''Imperfetto''' {{lp}} io avevo",
+        "'''Indicativo presente''' {{lp}} [[io]] ho",
+        "'''Passato prossimo''' {{lp}} ho avuto",
+        "'''Passato remoto''' {{lp}} io ebbi",
+        "'''[[mieć|Mam]]''' [[nowy]] [[samochód]].",
+        "1.1) [[mieć",
+        "1.1) [[possedere",
+        "1.2) [[mieć]] ([[jakiś|jakąś]] [[cecha|cechę",
+        "1.2) avere [[fame]] / [[sete]] • [[avere paura"
+      ],
       "examples": []
     }
   ],
