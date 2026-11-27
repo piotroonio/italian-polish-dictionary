@@ -134,12 +134,6 @@ def validate_word_file(file_path):
                         "example missing polish text",
                     )
 
-    if not has_translation:
-        error(
-            file_path,
-            "at least one translation required",
-        )
-
     metadata = data.get("metadata")
 
     if not isinstance(metadata, dict):
