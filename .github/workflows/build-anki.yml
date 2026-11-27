@@ -43,9 +43,3 @@ jobs:
         with:
           name: anki-export
           path: exports/
-
-      - name: Publish generated files
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "Build Anki exports"
-          file_pattern: exports/*
